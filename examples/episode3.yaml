@@ -1,0 +1,58 @@
+# Episode 3 of The True Village of Pro Athletes - the project this engine was built on.
+# Paths are relative to this file (or absolute).
+name: Episode3_TrueVillage
+work_dir: ../work/episode3
+out_dir: ../out/episode3
+
+people:
+  - {id: host, name: Host, role: host}
+  - {id: al,   name: Al Finley, role: guest}
+  - {id: shay, name: Shay Finley, role: guest}
+
+cameras:
+  - id: A                                   # iPhone 4K: faces the guests, host in profile on the right
+    files: [/tmp/claude-0/-home-user/2ba2e96d-d1df-5653-a171-95e0ea4929c4/scratchpad/src/master.mov]
+    master_audio: true                      # the episode soundtrack
+    order: [shay, al, host]                 # left -> right in frame
+    frontal: [shay, al]
+  - id: B                                   # Canon 1080p, split into 30-min chunks: faces the host
+    files:
+      - /tmp/claude-0/-home-user/2ba2e96d-d1df-5653-a171-95e0ea4929c4/scratchpad/src/MVI_0482.MP4
+      - /tmp/claude-0/-home-user/2ba2e96d-d1df-5653-a171-95e0ea4929c4/scratchpad/src/MVI_0483.MP4
+      - /tmp/claude-0/-home-user/2ba2e96d-d1df-5653-a171-95e0ea4929c4/scratchpad/src/MVI_0484.MP4
+    order: [shay, al, host]
+    frontal: [host]
+
+brand:
+  show_name: The True Village
+  show_subtitle: of Pro Athletes
+  episode_label: Episode 3
+  guest_line: Al & Shay Finley
+  guest_subline: Parents of AJ Finley
+  accent: "#6EC1FF"                         # light blue keywords
+  alert: "#FF4D4D"                          # the one red word (e.g. WRONG)
+
+edit:
+  # The angles the client approved: wide, guests two-shot, host shot, host close-up.
+  angles: ["A:wide", "A:two:shay+al", "B:wide", "B:single:host"]
+  min_shot: 2.2
+  max_shot: 12
+  removals:
+    - phrase_start: "So when you were going to your visits"
+      phrase_end: "we've had some moments like that"
+      note: "pop-up visit story"
+
+audio:
+  level_guests: true
+  loudness_lufs: -16
+
+outputs:
+  full_episode: true
+  parts_max_seconds: 300
+  trailer: true
+  trailer_music: true
+  shorts: 10
+  shorts_max_seconds: 85
+  transcript: true
+  srt: true
+  post_captions: true

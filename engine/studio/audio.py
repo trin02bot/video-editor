@@ -31,7 +31,9 @@ def level(proj: Project, path: np.ndarray, segs, log=print) -> Path:
         return out
     dn = proj.work_dir / "audio" / "master48_dn.wav"
     if not dn.exists():
-        run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af", "afftdn=nr=10:nf=-50:tn=1", "-c:a", "pcm_f32le", str(dn)])
+        tmp = dn.with_name("dn.part.wav")
+        run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af", "afftdn=nr=10:nf=-50:tn=1", "-c:a", "pcm_f32le", str(tmp)])
+        tmp.replace(dn)
     _, x = media.read_wav(src); _, xd = media.read_wav(dn); xd = xd[:len(x)]
     H = 480; N10 = len(x) // H                                      # 10 ms frames
     P = len(proj.people)
@@ -78,8 +80,10 @@ def _loudnorm(src: Path, dst: Path, I: float, tp: float, pre_filter: str = "") -
                        capture_output=True, text=True)
     j = json.loads(re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r.stderr, re.S).group(0))
     meas = f"measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}:measured_thresh={j['input_thresh']}:offset={j['target_offset']}"
+    tmp = dst.with_name(dst.stem + ".part.wav")
     run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af", f"{chain}loudnorm=I={I}:TP={tp}:LRA=9:{meas}:linear=true,aresample={SR}",
-         "-c:a", "pcm_f32le", str(dst)])
+         "-c:a", "pcm_f32le", str(tmp)])
+    tmp.replace(dst)
 
 
 def timeline(src: Path, keep: list[tuple[int, int]], out: Path, xfade: float = 0.012) -> Path:

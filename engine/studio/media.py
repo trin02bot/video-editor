@@ -37,10 +37,12 @@ def probe(path: str) -> dict:
 
 def extract_audio(src: str, dst: Path, sr: int = 16000, mono: bool = True, fmt: str = "pcm_s16le") -> Path:
     if not dst.exists():
+        tmp = dst.with_name(dst.stem + ".part" + dst.suffix)      # never leave a half-written file under the real name
         cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-vn"]
         if mono:
             cmd += ["-ac", "1"]
-        run(cmd + ["-ar", str(sr), "-c:a", fmt, str(dst)])
+        run(cmd + ["-ar", str(sr), "-c:a", fmt, str(tmp)])
+        tmp.replace(dst)
     return dst
 
 

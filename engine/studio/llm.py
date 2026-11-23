@@ -41,7 +41,8 @@ def _ask(proj: Project, prompt: str, schema: dict, max_tokens: int = 16000) -> d
             output_config={"effort": "high", "format": {"type": "json_schema", "schema": schema}},
             messages=[{"role": "user", "content": prompt}],
         )
-    except anthropic.AuthenticationError:
+    except (anthropic.AuthenticationError, TypeError):      # TypeError: no credentials configured at all
+        print("llm: no Anthropic credentials - using heuristic fallback")
         return None
     except (anthropic.APIConnectionError, anthropic.APIStatusError) as e:
         print(f"llm: request failed ({type(e).__name__}); using heuristic fallback")

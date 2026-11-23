@@ -21,6 +21,16 @@ def map_time(t: float, keep: list[tuple[int, int]]) -> float | None:
 
 
 def timeline_words(segs, keep, path, P, rate=10) -> list[tuple[float, float, str, int]]:
+    """Words on the final timeline, labeled with smoothed speaker turns (no word-by-word flicker)."""
+    from . import speakers
+    if not segs:
+        return []
+    turns = speakers.turns(path, P, segs[0]["start"], segs[-1]["end"] + 1, min_len=2.0)
+    starts = np.array([t[0] for t in turns])
+
+    def who(t):
+        i = int(np.searchsorted(starts, t, side="right")) - 1
+        return turns[max(i, 0)][2]
     out = []
     for s in segs:
         for a, b, w in s["words"]:
@@ -28,11 +38,7 @@ def timeline_words(segs, keep, path, P, rate=10) -> list[tuple[float, float, str
             if m is None:
                 continue
             ta = map_time(a, keep); tb = map_time(b, keep)
-            lab = int(path[min(int((a + b) / 2 * rate), len(path) - 1)])
-            out.append((ta if ta is not None else m, tb if tb is not None else m, w.strip(), lab))
-    for i, wd in enumerate(out):                     # silence label -> previous speaker
-        if wd[3] == P:
-            out[i] = (*wd[:3], out[i - 1][3] if i else 0)
+            out.append((ta if ta is not None else m, tb if tb is not None else m, w.strip(), who((a + b) / 2)))
     return out
 
 

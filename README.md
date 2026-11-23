@@ -68,3 +68,28 @@ Shot grammar for `edit.angles`:
 - `A:two:shay+al` is two adjacent people.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the platform plan: web app, uploads, workers and billing.
+
+## Platform (Phase 2)
+
+| Part | Where | What it does |
+|---|---|---|
+| Database & storage | `supabase/migrations/0001_init.sql` | Organizations, brand kits, projects, people, cameras, files, a job queue (`claim_job`), deliverables. Row-level security per organization. Private `footage` and `deliverables` buckets. |
+| Worker | `engine/studio/worker.py` (`python -m studio.worker`) | Claims queued jobs, downloads footage, runs the engine, streams progress to `jobs`, and uploads deliverables with resumable uploads. |
+| Web app | `web/` (Next.js; deploys to Netlify) | Sign in, new-episode wizard with resumable 4K uploads, face mapping, angle picker, quote-based cuts, preview and full edits, live progress, downloads with in-browser video preview. |
+
+Setup:
+1. Create a Supabase project and run `supabase/migrations/0001_init.sql` against it.
+2. Web app: in `web/`, copy `.env.example` to `.env.local` and fill in the values.
+
+```bash
+npm install
+npm run dev
+```
+
+3. Worker: build the image from `engine/`.
+
+```bash
+docker build -t studio-worker engine
+```
+
+   Run it with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` and a `/data` volume, using `python -m studio.worker` as the command.

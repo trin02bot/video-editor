@@ -12,3 +12,6 @@ out/
 models/
 .env
 *.egg-info/
+node_modules/
+.next/
+.env.local

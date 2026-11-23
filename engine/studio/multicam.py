@@ -55,6 +55,9 @@ def removal_ranges(proj: Project, segs) -> list[tuple[float, float]]:
             out.append((r.start, r.end)); continue
         i = find(r.phrase_start or "")
         if i is None:
+            if proj.limit:                       # preview windows only transcribe part of the episode
+                print(f"edit: removal {r.phrase_start!r} is outside the preview window - skipped")
+                continue
             raise ValueError(f"removal: phrase not found: {r.phrase_start!r}")
         j0 = find(r.phrase_end or "", ws[i][0])
         if j0 is None:

@@ -11,3 +11,4 @@ out/
 *.m4a
 models/
 .env
+*.egg-info/

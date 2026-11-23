@@ -75,7 +75,7 @@ def crop(proj: Project, fc: dict, shot: str, t0: float, t1: float) -> list[int] 
         want = float(np.clip(fw * 7.5, min_w, W))
         lead = _lead(fc, proj, cam, ppl[0], t0, t1)
     elif kind == "two":
-        a, b = sorted([p[0] for p, _ in pos], key=lambda q: q[0])
+        a, b = sorted([m for m, _ in pos], key=lambda q: q[0])
         lo = a[0] * W - a[2] * W * 1.6; hi = b[0] * W + b[2] * W * 1.6
         cx = (lo + hi) / 2; cy = (a[1] + b[1]) / 2 * H
         want = float(np.clip((hi - lo) * 1.25, max(min_w, hi - lo), W)); lead = 0.5
@@ -83,8 +83,8 @@ def crop(proj: Project, fc: dict, shot: str, t0: float, t1: float) -> list[int] 
     else:
         raise ValueError(f"unknown shot kind {kind}")
     L, R = _bounds(fc, proj, cam, ppl, t0, t1, W)
-    w = min(want, R - L, W)
-    if w < min_w:
+    w = float(min(want, R - L, W))
+    if w < min_w - 1:                    # 1 px tolerance: positions are float32
         return None
     w = int(w) // 2 * 2; h = int(round(w * 9 / 16)) // 2 * 2
     x = cx - w * lead; x = min(max(x, L), R - w); x = int(min(max(x, 0), W - w))

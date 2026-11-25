@@ -93,3 +93,9 @@ docker build -t studio-worker engine
 ```
 
    Run it with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` and a `/data` volume, using `python -m studio.worker` as the command.
+
+   **Or run it serverless on Modal (recommended):** `engine/modal_app.py` checks the queue every minute and starts
+   an L4 GPU worker only when jobs are waiting, so nothing bills while idle. Create a Modal secret named
+   `studio-secrets` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `ANTHROPIC_API_KEY`, then either run
+   `modal deploy modal_app.py` from `engine/`, or add `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET` as GitHub Actions
+   secrets and the `Deploy worker to Modal` workflow deploys on every push to `main` (or on demand).

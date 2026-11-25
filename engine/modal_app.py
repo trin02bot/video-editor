@@ -2,7 +2,7 @@
 
 How it works:
   * `dispatch` runs every minute on a tiny CPU container and asks Supabase whether any jobs are queued.
-  * If there are, it starts `process` on a GPU machine, which claims and runs jobs until the queue is
+  * If there are, it starts `process` on a worker machine (GPU if STUDIO_GPU is set), which claims and runs jobs until the queue is
     empty and then shuts down. Nothing runs (or bills) while the queue is empty.
   * Footage, stage caches and downloaded models live on Modal Volumes, so a "redo" after changing
     angles or removals reuses earlier work instead of re-downloading 4K files.
@@ -27,6 +27,10 @@ from pathlib import Path
 import modal
 
 HERE = Path(__file__).parent
+
+# GPU needs a payment method on Modal. Until then the worker runs on CPU (slower, no card needed).
+# To switch: set the GitHub Actions variable STUDIO_GPU=L4 (or any Modal GPU type) and re-deploy.
+GPU = os.environ.get("STUDIO_GPU") or None
 app = modal.App("video-editor-studio")
 
 DEPS = [
@@ -39,7 +43,7 @@ gpu_image = (
     modal.Image.from_registry("nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04", add_python="3.11")
     .apt_install("ffmpeg", "libgl1", "libegl1", "libgles2", "libglib2.0-0")
     .pip_install(*DEPS)
-    .env({"STUDIO_CUDA": "1", "STUDIO_MODELS": "/models", "STUDIO_DATA": "/data", "STUDIO_WORKER_NAME": "modal-gpu"})
+    .env({"STUDIO_CUDA": "1" if GPU else "0", "STUDIO_MODELS": "/models", "STUDIO_DATA": "/data", "STUDIO_WORKER_NAME": "modal-gpu"})
     # add_local_dir (not add_local_python_source) so the bundled fonts ship with the code
     .add_local_dir(HERE / "studio", "/root/studio")
 )
@@ -55,7 +59,7 @@ SPAWN_COOLDOWN = 4 * 60   # a GPU container needs a minute or two to boot and cl
 
 @app.function(
     image=gpu_image,
-    gpu="L4",                 # transcription runs on the GPU; tracking and x264 encoding use the CPUs
+    gpu=GPU,                  # transcription runs on the GPU when set; tracking and x264 encoding use the CPUs
     cpu=8.0,
     memory=32768,
     timeout=8 * 60 * 60,

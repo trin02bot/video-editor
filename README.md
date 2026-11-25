@@ -98,4 +98,4 @@ docker build -t studio-worker engine
    an L4 GPU worker only when jobs are waiting, so nothing bills while idle. Create a Modal secret named
    `studio-secrets` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `ANTHROPIC_API_KEY`, then either run
    `modal deploy modal_app.py` from `engine/`, or add `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET` as GitHub Actions
-   secrets and the `Deploy worker to Modal` workflow deploys on every push to `main` (or on demand).
+   secrets and the `Deploy worker to Modal` workflow deploys on every push to `engine-v1` (or on demand).

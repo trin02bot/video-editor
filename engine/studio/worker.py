@@ -179,19 +179,34 @@ def handle(job):
         stop.set()
 
 
-def main():
+def queued_count() -> int:
+    r = http.get(f"{URL}/rest/v1/jobs?select=id&status=eq.queued&limit=20"); r.raise_for_status()
+    return len(r.json())
+
+
+def run(exit_when_idle: bool = False, after_job=None) -> int:
+    """Claim and process jobs. With exit_when_idle (serverless workers), return once the queue is empty."""
     if not URL or not KEY:
         raise SystemExit("set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY")
     print(f"worker {NAME} polling {URL}", flush=True)
+    done = 0
     while True:
         try:
             job = rpc("claim_job", worker_name=NAME)
         except httpx.HTTPError as e:
             print("poll failed:", e, flush=True); time.sleep(15); continue
         if job and job.get("id"):
-            print(f"job {job['id']} ({job['kind']})", flush=True); handle(job)
+            print(f"job {job['id']} ({job['kind']})", flush=True); handle(job); done += 1
+            if after_job:
+                after_job()
+        elif exit_when_idle:
+            return done
         else:
             time.sleep(10)
+
+
+def main():
+    run(exit_when_idle=os.environ.get("STUDIO_EXIT_WHEN_IDLE") == "1")
 
 
 if __name__ == "__main__":

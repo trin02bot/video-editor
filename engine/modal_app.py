@@ -58,7 +58,6 @@ SPAWN_COOLDOWN = 4 * 60   # a GPU container needs a minute or two to boot and cl
     gpu="L4",                 # transcription runs on the GPU; tracking and x264 encoding use the CPUs
     cpu=8.0,
     memory=32768,
-    ephemeral_disk=500 * 1024,
     timeout=8 * 60 * 60,
     volumes={"/data": data, "/models": models},
     secrets=secrets,
